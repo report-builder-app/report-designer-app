@@ -1,0 +1,89 @@
+.properties-panel {
+  width: 280px;
+  background-color: #fff;
+  border-left: 1px solid #e8e8e8;
+  padding: 15px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.properties-panel h3,
+.properties-panel h4 {
+  color: #333;
+  margin-top: 0;
+}
+
+.properties-panel h3 {
+  font-size: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.properties-panel h4 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #444;
+}
+
+.property-group {
+  margin-bottom: 16px;
+}
+
+.property-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.property-group input[type="text"],
+.property-group input[type="number"],
+.property-group select,
+.property-group textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.property-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.property-group input:focus,
+.property-group select:focus,
+.property-group textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.control-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.control-row input {
+  flex: 1;
+}
+
+.color-picker {
+  width: 30px;
+  height: 30px;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .properties-panel {
+    width: 240px;
+    padding: 10px;
+  }
+}

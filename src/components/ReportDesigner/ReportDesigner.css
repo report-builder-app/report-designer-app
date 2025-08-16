@@ -1,0 +1,52 @@
+.report-designer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.designer-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.designer-main {
+  flex: 1;
+  overflow: auto;
+  background-color: #fafafa;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.designer-paper {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  margin: 0 auto;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 1200px) {
+  .designer-main {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .designer-container {
+    flex-direction: column;
+  }
+
+  .designer-main {
+    order: 1;
+  }
+
+  .elements-palette,
+  .properties-panel {
+    width: 100% !important;
+    height: auto;
+    max-height: 200px;
+  }
+}

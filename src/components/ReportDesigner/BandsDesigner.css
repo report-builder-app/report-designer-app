@@ -1,0 +1,108 @@
+.bands-designer {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+.band {
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  position: relative;
+}
+
+.band-label {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background-color: #1890ff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.band-content {
+  min-height: 60px;
+  border: 1px dashed #d9d9d9;
+  padding: 15px;
+  position: relative;
+  background-color: #fafafa;
+}
+
+/* Specific band styles */
+.title-band .band-content {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.pageHeader-band .band-content,
+.pageFooter-band .band-content {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.columnHeader-band .band-content,
+.columnFooter-band .band-content {
+  background-color: #fff7e6;
+  border-color: #ffd591;
+}
+
+.detail-band .band-content {
+  background-color: #fff2f0;
+  border-color: #ffccc7;
+  min-height: 100px;
+}
+
+.summary-band .band-content {
+  background-color: #f9f0ff;
+  border-color: #d3adf7;
+}
+
+/* Band highlight when containing elements */
+.band:not(:empty) .band-content {
+  border-style: solid;
+  border-width: 2px;
+}
+
+/* Empty band placeholder */
+.band-content:empty::after {
+  content: "Drag elements here";
+  color: #bfbfbf;
+  font-style: italic;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bands-designer {
+    padding: 10px;
+    gap: 20px;
+  }
+
+  .band-content {
+    padding: 10px;
+  }
+}
+
+/* Animation for band highlight when elements are added */
+@keyframes bandHighlight {
+  0% { background-color: inherit; }
+  50% { background-color: #e6f7ff; }
+  100% { background-color: inherit; }
+}
+
+.band-highlight {
+  animation: bandHighlight 1.5s ease-in-out;
+}

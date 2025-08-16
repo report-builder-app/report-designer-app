@@ -1,0 +1,41 @@
+.report-properties {
+  padding: 10px;
+}
+
+.report-properties h4 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.property-group {
+  margin-bottom: 15px;
+}
+
+.property-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.property-group input[type="text"],
+.property-group input[type="number"],
+.property-group select {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.size-controls,
+.margin-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.size-controls input,
+.margin-controls input {
+  flex: 1;
+}
