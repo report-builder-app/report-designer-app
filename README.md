@@ -1,6 +1,15 @@
-# Getting Started with Create React App
+# Report Designer App
 
 Клиентское приложения для дизайна отчетов
+
+Визуальный дизайнер:
+![My Image](./imgs/1.png "My Image Title")
+
+Groovy DSL:
+![My Image](./imgs/2.png "My Image Title")
+
+Превью и деплой отчета:
+![My Image](./imgs/3.png "My Image Title")
 
 ## Available Scripts
 
