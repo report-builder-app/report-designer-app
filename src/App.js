@@ -8,37 +8,31 @@ function App() {
   const [activeTab, setActiveTab] = useState('designer');
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Jasper Groovy DSL Designer</h1>
-        <nav className="tabs">
-          <button
-            className={activeTab === 'designer' ? 'active' : ''}
-            onClick={() => setActiveTab('designer')}
-          >
-            Designer
-          </button>
-          <button
-            className={activeTab === 'groovy' ? 'active' : ''}
-            onClick={() => setActiveTab('groovy')}
-          >
-            Groovy DSL
-          </button>
-          <button
-            className={activeTab === 'preview' ? 'active' : ''}
-            onClick={() => setActiveTab('preview')}
-          >
-            Preview
-          </button>
-        </nav>
-      </header>
+      <div className="app-container">
+        <header className="app-header">
+          <h1>Jasper Groovy DSL Designer</h1>
+          <nav className="tabs">
+            <button
+                className={activeTab === 'designer' ? 'active' : ''}
+                onClick={() => setActiveTab('designer')}
+            >Designer</button>
+            <button
+                className={activeTab === 'groovy' ? 'active' : ''}
+                onClick={() => setActiveTab('groovy')}
+            >Groovy DSL</button>
+            <button
+                className={activeTab === 'preview' ? 'active' : ''}
+                onClick={() => setActiveTab('preview')}
+            >Preview</button>
+          </nav>
+        </header>
 
-      <main>
-        {activeTab === 'designer' && <ReportDesigner />}
-        {activeTab === 'groovy' && <GroovyDSLPreview />}
-        {activeTab === 'preview' && <ReportPreview />}
-      </main>
-    </div>
+        <main className="app-main">
+          {activeTab === 'designer' && <ReportDesigner />}
+          {activeTab === 'groovy' && <GroovyDSLPreview />}
+          {activeTab === 'preview' && <ReportPreview />}
+        </main>
+      </div>
   );
 }
 

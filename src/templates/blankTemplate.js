@@ -1,21 +1,22 @@
 export const blankTemplate = {
-  title: "New Report",
+  name: 'UntitledReport',
+  title: 'Untitled Report',
+  pageFormat: 'A4',
   pageWidth: 595,
   pageHeight: 842,
-  orientation: "Portrait",
-  dataSource: {
-    connection: "",
-    query: ""
-  },
-  parameters: [],
+  orientation: 'PORTRAIT',
+
+  parameters: [
+    { name: 'ReportTitle', type: 'String', defaultValue: 'Untitled Report' },
+  ],
   fields: [],
+  query: '',
+  styles: [],
+
   bands: {
-    title: [],
-    pageHeader: [],
+    titleBand:    [],
     columnHeader: [],
-    detail: [],
-    columnFooter: [],
-    pageFooter: [],
-    summary: []
-  }
+    detail:       [],
+    summary:      [],
+  },
 };

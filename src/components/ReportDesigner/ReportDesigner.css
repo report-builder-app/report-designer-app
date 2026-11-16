@@ -1,18 +1,46 @@
 .report-designer {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
   background-color: #f5f5f5;
 }
 
+/* три колонки: палитра | холст | свойства */
 .designer-container {
   display: flex;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
+/* Ключевой фикс: центральная колонка растягивается и не сжимается */
+.designer-container > .bands-designer {
+  flex: 1 1 auto;
+  min-width: 0;       /* не даём flex-элементу «раздуваться» от содержимого */
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Боковые колонки — фиксированные, без сжатия */
+.designer-container > .elements-palette {
+  flex: 0 0 220px;
+  width: 220px;
+}
+
+.designer-container > .properties-panel {
+  flex: 0 0 280px;
+  width: 280px;
+}
+
+/* Старые классы .designer-main/.designer-paper больше не используются в JSX
+   (BandsDesigner сам является центральной колонкой). Оставляем на случай
+   будущего обёрточного макета. */
 .designer-main {
   flex: 1;
+  min-width: 0;
   overflow: auto;
   background-color: #fafafa;
   display: flex;
@@ -27,11 +55,8 @@
   margin: 0 auto;
 }
 
-/* Responsive layout adjustments */
 @media (max-width: 1200px) {
-  .designer-main {
-    padding: 10px;
-  }
+  .designer-main { padding: 10px; }
 }
 
 @media (max-width: 768px) {
@@ -39,14 +64,15 @@
     flex-direction: column;
   }
 
-  .designer-main {
+  .designer-container > .bands-designer {
     order: 1;
+    flex: 1 1 auto;
   }
 
-  .elements-palette,
-  .properties-panel {
-    width: 100% !important;
-    height: auto;
+  .designer-container > .elements-palette,
+  .designer-container > .properties-panel {
+    flex: 0 0 auto;
+    width: 100%;
     max-height: 200px;
   }
 }
