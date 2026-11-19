@@ -4,6 +4,8 @@ import GroovyDSLPreview from './components/GroovyDSLPreview/GroovyDSLPreview';
 import ReportPreview from './components/ReportPreview/ReportPreview';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
 import { SettingsProvider } from './contexts/SettingsContext';
+import DataSourcesPage from './pages/DataSourcesPage/DataSourcesPage';
+import { DataSourcesProvider } from './contexts/DataSourcesContext';
 import './App.css';
 
 import { NavigationProvider, NavigationContext } from './contexts/NavigationContext';
@@ -12,7 +14,9 @@ function App() {
     return (
         <SettingsProvider>
             <NavigationProvider>
-                <AppShell />
+                <DataSourcesProvider>
+                    <AppShell />
+                </DataSourcesProvider>
             </NavigationProvider>
         </SettingsProvider>
     );
@@ -30,6 +34,7 @@ function AppShell() {
                         <button className={activeTab === 'designer' ? 'active' : ''} onClick={() => goTo('designer')}>Designer</button>
                         <button className={activeTab === 'groovy' ? 'active' : ''} onClick={() => goTo('groovy')}>Groovy DSL</button>
                         <button className={activeTab === 'preview' ? 'active' : ''} onClick={() => goTo('preview')}>Preview</button>
+                        <button className={activeTab === 'datasources' ? 'active' : ''} onClick={() => goTo('datasources')}>Data Sources</button>
                     </div>
                     <div className="tabs-right">
                         <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => goTo('settings')}>⚙ Настройки</button>
@@ -41,6 +46,7 @@ function AppShell() {
                 {activeTab === 'designer' && <ReportDesigner />}
                 {activeTab === 'groovy' && <GroovyDSLPreview />}
                 {activeTab === 'preview' && <ReportPreview />}
+                {activeTab === 'datasources' && <DataSourcesPage />}
                 {activeTab === 'settings' && <SettingsPage />}
             </main>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiMove, FiX, FiEdit2 } from 'react-icons/fi';
+import { FiMove, FiX } from 'react-icons/fi';
 import './DraggableElement.css';
 
 function DraggableElement({

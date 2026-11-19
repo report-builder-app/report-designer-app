@@ -116,16 +116,18 @@ function GroovyDSLPreview() {
           <h2>Groovy DSL Code</h2>
 
           <div className="groovy-preview-meta">
+            {/* индикаторы */}
             <span className="groovy-preview-stat">{totalElements} elements</span>
 
             {isEditing && (
                 <span
                     className={`editor-status ${error ? 'error' : dirty ? 'dirty' : justApplied ? 'applied' : ''}`}
                 >
-              {error ? '✗ ошибка' : dirty ? '● изменено' : justApplied ? '✓ применено' : ''}
-            </span>
+      {error ? '✗ ошибка' : dirty ? '● изменено' : justApplied ? '✓ применено' : ''}
+    </span>
             )}
 
+            {/* переключатель режимов */}
             <div className="mode-switch">
               <button className={mode === MODE.VIEW ? 'active' : ''} onClick={() => setMode(MODE.VIEW)}>View</button>
               <button className={mode === MODE.EDIT_GROOVY ? 'active' : ''} onClick={() => setMode(MODE.EDIT_GROOVY)}>
@@ -136,24 +138,34 @@ function GroovyDSLPreview() {
               </button>
             </div>
 
-            {mode === MODE.VIEW ? (
-                CopyToClipboard ? (
-                    <CopyToClipboard text={groovyCode} onCopy={handleCopy}>
-                      <button className="copy-button">
-                        {copied ? <FiCheck /> : <FiCopy />} {copied ? ' Copied!' : ' Copy'}
+            {/* действия — отдельная группа, всегда в строку */}
+            <div className="groovy-preview-actions">
+              {mode === MODE.VIEW ? (
+                  CopyToClipboard ? (
+                      <CopyToClipboard text={groovyCode} onCopy={handleCopy}>
+                        <button className="copy-button">
+                          {copied ? <FiCheck /> : <FiCopy />} {copied ? ' Copied!' : ' Copy'}
+                        </button>
+                      </CopyToClipboard>
+                  ) : (
+                      <button
+                          className="copy-button"
+                          onClick={() => { navigator.clipboard?.writeText(groovyCode); handleCopy(); }}
+                      >
+                        {copied ? <FiCheck /> : <FiCopy />} Copy
                       </button>
-                    </CopyToClipboard>
-                ) : (
-                    <button className="copy-button" onClick={() => { navigator.clipboard?.writeText(groovyCode); handleCopy(); }}>
-                      {copied ? <FiCheck /> : <FiCopy />} Copy
+                  )
+              ) : (
+                  <>
+                    <button className="copy-button secondary" onClick={handleReset}>
+                      <FiRotateCcw /> Reset
                     </button>
-                )
-            ) : (
-                <>
-                  <button className="copy-button secondary" onClick={handleReset}><FiRotateCcw /> Reset</button>
-                  <button className="copy-button" onClick={handleApply}><FiPlay /> Apply</button>
-                </>
-            )}
+                    <button className="copy-button" onClick={handleApply}>
+                      <FiPlay /> Apply
+                    </button>
+                  </>
+              )}
+            </div>
           </div>
         </div>
 

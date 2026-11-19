@@ -47,7 +47,16 @@ export function toReportDefinitionDto(report) {
         dto.fields = report.fields.map((f) => ({ name: f.name, type: f.type }));
     }
     if (report.query) dto.queryString = report.query;
-    if (report.dataSource) dto.dataSource = report.dataSource;
+    if (report.dataSource) {
+        const { provider, jdbcUrl, user, url, jsonPath, options } = report.dataSource;
+        const ds = { provider };
+        if (jdbcUrl) ds.jdbcUrl = jdbcUrl;
+        if (user) ds.user = user;
+        if (url) ds.url = url;
+        if (jsonPath) ds.jsonPath = jsonPath;
+        if (options) ds.options = options;
+        dto.dataSource = ds;
+    }
 
     return dto;
 }

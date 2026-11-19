@@ -2,7 +2,18 @@ import {
   FiType, FiHash, FiImage, FiMinus, FiSquare, FiAlignLeft,
 } from 'react-icons/fi';
 
-/* ---------- Типы элементов (реестр) ---------- */
+/* ============================================================
+   Утилиты
+   ============================================================ */
+
+const q = (s) =>
+    `"${String(s ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+
+const typeName = (t) => (typeof t === 'string' ? t : t?.name ?? 'String');
+
+/* ============================================================
+   Типы элементов (реестр)
+   ============================================================ */
 
 export const elementTypes = {
   label: {
@@ -50,12 +61,9 @@ export const elementTypes = {
 
 export const createElement = (type) => elementTypes[type].create();
 
-/* ---------- Groovy DSL ---------- */
-
-const q = (s) =>
-    `"${String(s ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-
-const typeName = (t) => (typeof t === 'string' ? t : t?.name ?? 'String');
+/* ============================================================
+   Groovy DSL — элемент
+   ============================================================ */
 
 function generateElementDSL(el) {
   const attrs = [];
@@ -85,6 +93,49 @@ function generateElementDSL(el) {
   }
 }
 
+/* ============================================================
+   Groovy DSL — источник данных
+   ============================================================ */
+
+function generateDataSourceDSL(ds) {
+  if (!ds?.provider) return null;
+
+  const L = [];
+  L.push('    dataSource {');
+  L.push(`        provider = ${q(ds.provider)}`);
+
+  if (ds.provider === 'sql') {
+    if (ds.jdbcUrl) L.push(`        jdbcUrl = ${q(ds.jdbcUrl)}`);
+    if (ds.user) L.push(`        user = ${q(ds.user)}`);
+    // Пароль в DSL не пишем — он хранится на сервере в /api/v1/datasources
+  } else if (ds.provider === 'web') {
+    if (ds.url) L.push(`        url = ${q(ds.url)}`);
+    if (ds.jsonPath) L.push(`        jsonPath = ${q(ds.jsonPath)}`);
+  } else if (ds.provider === 'custom') {
+    if (ds.options && typeof ds.options === 'object') {
+      L.push('        options {');
+      Object.entries(ds.options).forEach(([k, v]) => {
+        if (typeof v === 'string') {
+          L.push(`            ${k} = ${q(v)}`);
+        } else if (typeof v === 'number' || typeof v === 'boolean') {
+          L.push(`            ${k} = ${v}`);
+        } else if (v && typeof v === 'object') {
+          L.push(`            ${k} = ${JSON.stringify(v)}`);
+        }
+      });
+      L.push('        }');
+    }
+  }
+
+  L.push('    }');
+  L.push('');
+  return L.join('\n');
+}
+
+/* ============================================================
+   Groovy DSL — отчёт целиком
+   ============================================================ */
+
 const BAND_ORDER = [
   'titleBand', 'pageHeader', 'columnHeader',
   'detail', 'columnFooter', 'pageFooter', 'summary', 'noData',
@@ -95,6 +146,8 @@ export function generateGroovyDSL(report) {
 
   const L = [];
   L.push(`report(${q(report.name || 'Report')}) {`);
+
+  // Общие параметры
   if (report.title) L.push(`    title = ${q(report.title)}`);
   if (report.pageFormat)
     L.push(`    pageFormat = PageFormat.${report.pageFormat}`);
@@ -102,12 +155,17 @@ export function generateGroovyDSL(report) {
     L.push(`    orientation = PageOrientation.${report.orientation}`);
   L.push('');
 
+  // Параметры
   if (report.parameters?.length) {
     L.push('    parameters {');
     report.parameters.forEach((p) => {
       const args = [q(p.name), typeName(p.type)];
       if (p.defaultValue !== undefined && p.defaultValue !== null) {
-        args.push(typeof p.defaultValue === 'string' ? q(p.defaultValue) : String(p.defaultValue));
+        args.push(
+            typeof p.defaultValue === 'string'
+                ? q(p.defaultValue)
+                : String(p.defaultValue)
+        );
       }
       L.push(`        param(${args.join(', ')})`);
     });
@@ -115,22 +173,37 @@ export function generateGroovyDSL(report) {
     L.push('');
   }
 
+  // Поля
   if (report.fields?.length) {
     L.push('    fields {');
-    report.fields.forEach((f) => L.push(`        field(${q(f.name)}, ${typeName(f.type)})`));
+    report.fields.forEach((f) =>
+        L.push(`        field(${q(f.name)}, ${typeName(f.type)})`)
+    );
     L.push('    }');
     L.push('');
   }
 
+  // Запрос
   if (report.query) {
     L.push('    queryString(');
     L.push('        """');
-    String(report.query).trim().split('\n').forEach((line) => L.push('        ' + line));
+    String(report.query)
+        .trim()
+        .split('\n')
+        .forEach((line) => L.push('        ' + line));
     L.push('        """');
     L.push('    )');
     L.push('');
   }
 
+  // Источник данных  ← добавлено
+  const dsBlock = generateDataSourceDSL(report.dataSource);
+  if (dsBlock) {
+    L.push('    // Источник данных');
+    L.push(dsBlock);
+  }
+
+  // Стили
   if (report.styles?.length) {
     L.push('    styles {');
     report.styles.forEach((s) => {
@@ -151,6 +224,7 @@ export function generateGroovyDSL(report) {
     L.push('');
   }
 
+  // Бэнды
   L.push('    bands {');
   const bands = report.bands || {};
   const names = [

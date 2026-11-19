@@ -1,0 +1,16 @@
+/* Чтобы модалка работала и вне .datasources-page, дублируем базовые стили */
+@import '../../pages/DataSourcesPage/DataSourcesPage.css';
+
+/* Точные правки для модалки, если нужны */
+.ds-modal .ds-form textarea {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 12px;
+}
+
+.ds-modal .ds-form input:focus,
+.ds-modal .ds-form select:focus,
+.ds-modal .ds-form textarea:focus {
+    outline: none;
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
