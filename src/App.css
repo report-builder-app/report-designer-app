@@ -59,3 +59,34 @@
   border-radius: 4px;
   overflow-x: auto;
 }
+
+.tabs {
+  display: flex;
+  justify-content: space-between; /* левая группа — влево, «Настройки» — вправо */
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.tabs-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tabs-right {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto; /* страховка */
+}
+
+.tabs button {
+  padding: 0.5rem 1rem;
+  background: #34495e;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.tabs button.active {
+  background: #1abc9c;
+}
