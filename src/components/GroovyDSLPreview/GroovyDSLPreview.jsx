@@ -1,50 +1,51 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ReportContext } from '../../contexts/ReportContext';
 import { generateGroovyDSL } from '../../utils/elementFactory';
+import { parseGroovyDSL } from '../../utils/groovyParser';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { FiCopy, FiCheck } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiEdit2, FiPlay, FiRotateCcw } from 'react-icons/fi';
+import GroovyCodeEditor from './GroovyCodeEditor';
 import './GroovyDSLPreview.css';
 
-// Prism: ядро + groovy + тема
-import Prism from 'prismjs';
-import 'prismjs/components/prism-groovy';
-import 'prismjs/themes/prism.css';
+const MODE = { VIEW: 'view', EDIT_GROOVY: 'edit-groovy', EDIT_JSON: 'edit-json' };
+const DEBOUNCE_MS = 400;
 
 function GroovyDSLPreview() {
-  const { report } = useContext(ReportContext);
+  const { report, updateReport } = useContext(ReportContext);
+
+  const [mode, setMode] = useState(MODE.VIEW);
+  const [draft, setDraft] = useState('');
+  const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [justApplied, setJustApplied] = useState(false);
 
   const copyTimerRef = useRef(null);
+  const debounceRef = useRef(null);
+  const appliedTimerRef = useRef(null);
 
-  // Генерируем DSL только при изменении report
   const groovyCode = useMemo(() => {
     try {
       return generateGroovyDSL(report);
     } catch (e) {
-      console.error('generateGroovyDSL failed:', e);
       return `// Ошибка генерации DSL: ${e.message}`;
     }
   }, [report]);
 
-  // Подсветка: тоже мемоизируем, чтобы не гонять Prism на каждый рендер
-  const highlighted = useMemo(() => {
-    try {
-      if (Prism.languages.groovy) {
-        return Prism.highlight(groovyCode, Prism.languages.groovy, 'groovy');
-      }
-      // fallback: просто экранируем HTML
-      return escapeHtml(groovyCode);
-    } catch (e) {
-      console.error('Prism highlight failed:', e);
-      return escapeHtml(groovyCode);
-    }
-  }, [groovyCode]);
+  const jsonCode = useMemo(() => JSON.stringify(report, null, 2), [report]);
 
-  // Таймер «Copied!» — чистим при размонтировании
   useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-    };
+    if (mode === MODE.EDIT_GROOVY) setDraft(groovyCode);
+    if (mode === MODE.EDIT_JSON) setDraft(jsonCode);
+    setError(null);
+    setDirty(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  useEffect(() => () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (appliedTimerRef.current) clearTimeout(appliedTimerRef.current);
   }, []);
 
   const handleCopy = () => {
@@ -53,80 +54,134 @@ function GroovyDSLPreview() {
     copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
-  // Диагностика «обновилось ли»: сколько элементов на холсте
+  const applyDraft = (silent = false) => {
+    setError(null);
+    try {
+      if (mode === MODE.EDIT_JSON) {
+        const parsed = JSON.parse(draft);
+        if (!parsed.bands || typeof parsed.bands !== 'object') {
+          throw new Error('В JSON отсутствует объект "bands"');
+        }
+        updateReport(() => parsed);
+      } else if (mode === MODE.EDIT_GROOVY) {
+        const parsed = parseGroovyDSL(draft);
+        updateReport(() => parsed);
+      }
+      setDirty(false);
+      setJustApplied(true);
+      if (appliedTimerRef.current) clearTimeout(appliedTimerRef.current);
+      appliedTimerRef.current = setTimeout(() => setJustApplied(false), 1500);
+    } catch (e) {
+      if (silent) setError(e.message); // показываем и в live-режиме, чтобы не терять ошибку
+      else setError(e.message);
+    }
+  };
+
+  const handleDraftChange = (value) => {
+    setDraft(value);
+    setDirty(true);
+    setJustApplied(false);
+    setError(null);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => applyDraft(true), DEBOUNCE_MS);
+  };
+
+  const handleApply = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    applyDraft(false);
+  };
+
+  const handleReset = () => {
+    if (mode === MODE.EDIT_GROOVY) setDraft(groovyCode);
+    if (mode === MODE.EDIT_JSON) setDraft(jsonCode);
+    setError(null);
+    setDirty(false);
+    setJustApplied(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  };
+
   const totalElements = useMemo(() => {
     const bands = report?.bands || {};
     return Object.values(bands).reduce(
-        (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
+        (s, a) => s + (Array.isArray(a) ? a.length : 0),
         0
     );
   }, [report]);
 
-  const copyButton = (
-      <button className="copy-button" type="button">
-        {copied ? <FiCheck /> : <FiCopy />}
-        {copied ? ' Copied!' : ' Copy Code'}
-      </button>
-  );
+  const isEditing = mode === MODE.EDIT_GROOVY || mode === MODE.EDIT_JSON;
 
   return (
       <div className="groovy-preview-container">
         <div className="groovy-preview-header">
           <h2>Groovy DSL Code</h2>
+
           <div className="groovy-preview-meta">
-          <span className="groovy-preview-stat" title="Общее число элементов на холсте">
-            {totalElements} element{totalElements === 1 ? '' : 's'}
-          </span>
-            <span className="groovy-preview-stat" title="Длина DSL в символах">
-            {groovyCode.length} chars
-          </span>
-            {CopyToClipboard ? (
-                <CopyToClipboard text={groovyCode} onCopy={handleCopy}>
-                  {copyButton}
-                </CopyToClipboard>
-            ) : (
-                // fallback: если пакет не установлен, хотя бы не падаем
-                <button
-                    className="copy-button"
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard?.writeText(groovyCode);
-                      handleCopy();
-                    }}
+            <span className="groovy-preview-stat">{totalElements} elements</span>
+
+            {isEditing && (
+                <span
+                    className={`editor-status ${error ? 'error' : dirty ? 'dirty' : justApplied ? 'applied' : ''}`}
                 >
-                  {copied ? <FiCheck /> : <FiCopy />}
-                  {copied ? ' Copied!' : ' Copy Code'}
-                </button>
+              {error ? '✗ ошибка' : dirty ? '● изменено' : justApplied ? '✓ применено' : ''}
+            </span>
+            )}
+
+            <div className="mode-switch">
+              <button className={mode === MODE.VIEW ? 'active' : ''} onClick={() => setMode(MODE.VIEW)}>View</button>
+              <button className={mode === MODE.EDIT_GROOVY ? 'active' : ''} onClick={() => setMode(MODE.EDIT_GROOVY)}>
+                <FiEdit2 /> Groovy
+              </button>
+              <button className={mode === MODE.EDIT_JSON ? 'active' : ''} onClick={() => setMode(MODE.EDIT_JSON)}>
+                <FiEdit2 /> JSON
+              </button>
+            </div>
+
+            {mode === MODE.VIEW ? (
+                CopyToClipboard ? (
+                    <CopyToClipboard text={groovyCode} onCopy={handleCopy}>
+                      <button className="copy-button">
+                        {copied ? <FiCheck /> : <FiCopy />} {copied ? ' Copied!' : ' Copy'}
+                      </button>
+                    </CopyToClipboard>
+                ) : (
+                    <button className="copy-button" onClick={() => { navigator.clipboard?.writeText(groovyCode); handleCopy(); }}>
+                      {copied ? <FiCheck /> : <FiCopy />} Copy
+                    </button>
+                )
+            ) : (
+                <>
+                  <button className="copy-button secondary" onClick={handleReset}><FiRotateCcw /> Reset</button>
+                  <button className="copy-button" onClick={handleApply}><FiPlay /> Apply</button>
+                </>
             )}
           </div>
         </div>
 
         <div className="code-container">
-        <pre className="language-groovy">
-          {/*
-            key гарантирует, что React пересоздаст узел при изменении кода,
-            даже если Prism по какой-то причине вернёт идентичный HTML
-            (например, при «пустом» отчёте).
-          */}
-          <code
-              key={groovyCode.length + ':' + totalElements}
-              className="language-groovy"
-              dangerouslySetInnerHTML={{ __html: highlighted }}
-          />
-        </pre>
+          {/* View — тот же CodeMirror, но readOnly (никакого Prism) */}
+          {mode === MODE.VIEW && (
+              <GroovyCodeEditor
+                  value={groovyCode}
+                  onChange={() => {}}
+                  language="groovy"
+                  readOnly
+                  height="100%"
+              />
+          )}
+
+          {isEditing && (
+              <GroovyCodeEditor
+                  value={draft}
+                  onChange={handleDraftChange}
+                  language={mode === MODE.EDIT_JSON ? 'json' : 'groovy'}
+                  height="100%"
+              />
+          )}
         </div>
+
+        {error && <div className="editor-error">{error}</div>}
       </div>
   );
-}
-
-/** Простое экранирование HTML — на случай, если Prism не загрузился */
-function escapeHtml(str) {
-  return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
 }
 
 export default GroovyDSLPreview;
