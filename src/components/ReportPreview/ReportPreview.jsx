@@ -1,25 +1,29 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ReportContext } from '../../contexts/ReportContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
-import { generateJasperReport } from '../../utils/jasperUtils';
+import { renderReport } from '../../utils/jasperUtils';
 import { FiRefreshCw } from 'react-icons/fi';
 import './ReportPreview.css';
 
 const DEBOUNCE_MS = 800;
 
+const FORMATS = [
+  { value: 'html', label: 'HTML' },
+  { value: 'pdf',  label: 'PDF'  },
+  { value: 'json', label: 'JSON' },
+];
+
 function ReportPreview() {
   const { report } = useContext(ReportContext);
   const { settings } = useContext(SettingsContext);
 
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [format, setFormat] = useState('html');
+  const [preview, setPreview] = useState(null); // { url, contentType }
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // храним предыдущий blob-URL, чтобы освободить память
   const lastBlobUrlRef = useRef(null);
-  // защита от гонки запросов
   const requestIdRef = useRef(0);
-  // таймер дебаунса
   const debounceTimerRef = useRef(null);
 
   const revokeLastBlob = () => {
@@ -35,24 +39,28 @@ function ReportPreview() {
     setError(null);
 
     try {
-      const url = await generateJasperReport(report, settings);
+      const { blobUrl, contentType } = await renderReport(report, settings, format);
 
-      // если пока запрос шёл, стартовал более новый — игнорируем
-      if (requestId !== requestIdRef.current) return;
+      // пока запрос шёл, стартовал более новый — игнорируем
+      if (requestId !== requestIdRef.current) {
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
 
       revokeLastBlob();
-      lastBlobUrlRef.current = url;
-      setPreviewUrl(url);
+      lastBlobUrlRef.current = blobUrl;
+      setPreview({ url: blobUrl, contentType: contentType || '' });
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       console.error('Error generating preview:', err);
       setError(err.message || 'Не удалось сгенерировать превью');
+      setPreview(null);
     } finally {
       if (requestId === requestIdRef.current) setIsLoading(false);
     }
   };
 
-  // авто-генерация с дебаунсом при изменениях отчёта или настроек
+  // авто-генерация с дебаунсом при изменениях отчёта, настроек или формата
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
@@ -63,7 +71,7 @@ function ReportPreview() {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [report, settings]);
+  }, [report, settings, format]);
 
   // очистка blob-URL при размонтировании
   useEffect(() => {
@@ -72,9 +80,8 @@ function ReportPreview() {
     };
   }, []);
 
-  const isBlob = previewUrl?.startsWith('blob:');
-  // JSON-мок от бэкенда лучше показать текстом, а не в iframe
-  const isJsonBlob = isBlob && previewUrl;
+  const isJson = preview?.contentType?.includes('application/json');
+  const isPdf = preview?.contentType?.includes('application/pdf');
 
   return (
       <div className="report-preview-container">
@@ -84,6 +91,22 @@ function ReportPreview() {
           <span className="preview-server" title="Адрес сервера из настроек">
             {settings?.serverUrl || '— мок-режим —'}
           </span>
+
+            <label className="preview-format">
+              Format:{' '}
+              <select
+                  value={format}
+                  onChange={(e) => setFormat(e.target.value)}
+                  disabled={isLoading}
+              >
+                {FORMATS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                ))}
+              </select>
+            </label>
+
             <button
                 onClick={generatePreview}
                 disabled={isLoading}
@@ -108,13 +131,18 @@ function ReportPreview() {
             </div>
         ) : (
             <div className="preview-content">
-              {previewUrl ? (
-                  isJsonBlob ? (
-                      // мок: покажем содержимое как текст, а не пытаемся рендерить JSON в iframe
-                      <JsonPreview url={previewUrl} />
+              {preview ? (
+                  isJson ? (
+                      <JsonPreview url={preview.url} />
+                  ) : isPdf ? (
+                      <embed
+                          src={preview.url}
+                          type="application/pdf"
+                          className="preview-iframe"
+                      />
                   ) : (
                       <iframe
-                          src={previewUrl}
+                          src={preview.url}
                           title="Jasper Report Preview"
                           className="preview-iframe"
                       />
@@ -137,12 +165,11 @@ function JsonPreview({ url }) {
     fetch(url)
         .then((r) => r.text())
         .then((t) => {
-          if (!cancelled) {
-            try {
-              setText(JSON.stringify(JSON.parse(t), null, 2));
-            } catch {
-              setText(t);
-            }
+          if (cancelled) return;
+          try {
+            setText(JSON.stringify(JSON.parse(t), null, 2));
+          } catch {
+            setText(t);
           }
         })
         .catch((e) => setText(`Ошибка чтения: ${e.message}`));
