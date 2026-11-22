@@ -1,6 +1,7 @@
 import {
   FiType, FiHash, FiImage, FiMinus, FiSquare, FiAlignLeft,
 } from 'react-icons/fi';
+import { uuid } from './uuid';
 
 /* ============================================================
    Утилиты
@@ -14,12 +15,12 @@ const typeName = (t) => (typeof t === 'string' ? t : t?.name ?? 'String');
 /* ============================================================
    Типы элементов (реестр)
    ============================================================ */
-
 export const elementTypes = {
   label: {
     label: 'Label',
     icon: FiType,
     create: () => ({
+      id: uuid(),
       type: 'label', text: 'Label', x: 0, y: 0, width: 100, height: 20,
       fontSize: 12, bold: false,
     }),
@@ -28,6 +29,7 @@ export const elementTypes = {
     label: 'Text Field',
     icon: FiHash,
     create: () => ({
+      id: uuid(),
       type: 'textField', expression: '$F{field}', x: 0, y: 0, width: 120, height: 20,
       fontSize: 12, bold: false, pattern: '',
     }),
@@ -36,6 +38,7 @@ export const elementTypes = {
     label: 'Static Text',
     icon: FiAlignLeft,
     create: () => ({
+      id: uuid(),
       type: 'staticText', text: 'Static', x: 0, y: 0, width: 100, height: 20,
       fontSize: 12, bold: false,
     }),
@@ -44,18 +47,25 @@ export const elementTypes = {
     label: 'Image',
     icon: FiImage,
     create: () => ({
+      id: uuid(),
       type: 'image', expression: '$F{image}', x: 0, y: 0, width: 80, height: 80,
     }),
   },
   line: {
     label: 'Line',
     icon: FiMinus,
-    create: () => ({ type: 'line', x: 0, y: 0, width: 100 }),
+    create: () => ({
+      id: uuid(),
+      type: 'line', x: 0, y: 0, width: 100,
+    }),
   },
   rectangle: {
     label: 'Rectangle',
     icon: FiSquare,
-    create: () => ({ type: 'rectangle', x: 0, y: 0, width: 100, height: 40 }),
+    create: () => ({
+      id: uuid(),
+      type: 'rectangle', x: 0, y: 0, width: 100, height: 40,
+    }),
   },
 };
 

@@ -1,0 +1,18 @@
+.elements-palette__hint {
+    font-size: 11px;
+    color: #888;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.elements-palette__hint code {
+    background: #f0f0f0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+/* Индикатор «можно бросить сюда» на элементе палитры */
+.element-button:active {
+    cursor: grabbing;
+}

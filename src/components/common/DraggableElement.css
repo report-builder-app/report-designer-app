@@ -139,3 +139,24 @@
 .draggable-element.image {
   background-color: rgba(237, 231, 246, 0.7);
 }
+
+.draggable-element.type-staticText .element-preview,
+.draggable-element.type-label .element-preview {
+  font-size: 12px;
+}
+
+.draggable-element.type-image {
+  background: #f0f5ff;
+  border: 1px dashed #91d5ff;
+}
+
+.draggable-element.type-line {
+  background: transparent;
+  border-bottom: 1px solid #333;
+  height: auto !important;
+}
+
+.draggable-element.type-rectangle {
+  background: transparent;
+  border: 1px solid #333;
+}
