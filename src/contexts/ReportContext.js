@@ -1,29 +1,33 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
+import { normalizeReport } from '../utils/normalizeReport';
 import { blankTemplate } from '../templates/blankTemplate';
 
-export const ReportContext = createContext();
+export const ReportContext = createContext(null);
 
 export function ReportProvider({ children }) {
-  const [report, setReport] = useState(blankTemplate);
-  const [selectedElement, setSelectedElement] = useState(null);
+    const [report, setReportState] = useState(() =>
+        normalizeReport(JSON.parse(JSON.stringify(blankTemplate)))
+    );
+    const [selectedElement, setSelectedElement] = useState(null);
 
-  const updateReport = (updater) => {
-    setReport(prev => {
-      if (typeof updater === 'function') {
-        return updater(prev);
-      }
-      return { ...prev, ...updater };
-    });
-  };
+    // Всегда нормализуем результат updater'а
+    const updateReport = useCallback((updater) => {
+        setReportState((prev) => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            return normalizeReport(next);
+        });
+    }, []);
 
-  return (
-    <ReportContext.Provider value={{
-      report,
-      updateReport,
-      selectedElement,
-      setSelectedElement
-    }}>
-      {children}
-    </ReportContext.Provider>
-  );
+    return (
+        <ReportContext.Provider
+            value={{
+                report,
+                updateReport,
+                selectedElement,
+                setSelectedElement,
+            }}
+        >
+            {children}
+        </ReportContext.Provider>
+    );
 }

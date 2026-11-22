@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ReportContext } from '../../contexts/ReportContext';
 import { elementTypes } from '../../utils/elementFactory';
+import { useReportUpdater } from '../../hooks/useReportUpdater';
 import DraggableElement from '../common/DraggableElement';
 import './BandsDesigner.css';
 
@@ -10,6 +11,8 @@ const MIME_MOVE = 'application/x-move-element';
 function BandsDesigner() {
   const { report, updateReport, selectedElement, setSelectedElement } =
       useContext(ReportContext);
+
+  const updateReportWithHeight = useReportUpdater(updateReport);
 
   const [dragOverBand, setDragOverBand] = useState(null);
   const canvasRef = useRef(null);
@@ -36,28 +39,34 @@ function BandsDesigner() {
     setSelectedElement({ bandName, elementId });
   };
 
+  // ---- Перемещение внутри бэнда ----
   const handleElementMove = (bandName, elementId, newX, newY) => {
-    updateReport((prev) => {
-      const updated = (prev.bands[bandName] || []).map((el) =>
+    updateReportWithHeight((prev) => {
+      const list = Array.isArray(prev.bands[bandName]) ? prev.bands[bandName] : [];
+      const updated = list.map((el) =>
           el.id === elementId ? { ...el, x: newX, y: newY } : el
       );
-      return {
-        ...prev,
-        bands: { ...prev.bands, [bandName]: updated },
-      };
+      return { ...prev, bands: { ...prev.bands, [bandName]: updated } };
     });
   };
 
+  // ---- Перемещение между бэндами ----
   const handleCrossBandMove = (sourceBand, elementId, targetBand, newX, newY) => {
     if (!sourceBand || !targetBand || sourceBand === targetBand) return;
 
-    updateReport((prev) => {
-      const source = [...(prev.bands[sourceBand] || [])];
+    updateReportWithHeight((prev) => {
+      const source = Array.isArray(prev.bands[sourceBand])
+          ? [...prev.bands[sourceBand]]
+          : [];
+      const target = Array.isArray(prev.bands[targetBand])
+          ? [...prev.bands[targetBand]]
+          : [];
+
       const idx = source.findIndex((el) => el.id === elementId);
       if (idx === -1) return prev;
 
       const [moved] = source.splice(idx, 1);
-      const target = [...(prev.bands[targetBand] || []), { ...moved, x: newX, y: newY }];
+      target.push({ ...moved, x: newX, y: newY });
 
       return {
         ...prev,
@@ -65,10 +74,10 @@ function BandsDesigner() {
       };
     });
 
-    // Переключаем выделение на новый бэнд
     setSelectedElement({ bandName: targetBand, elementId });
   };
 
+  // ---- Drop ----
   const handleDrop = (bandName, e) => {
     e.preventDefault();
     setDragOverBand(null);
@@ -90,71 +99,80 @@ function BandsDesigner() {
     }
 
     // 2. Новый элемент из палитры
-    const type = e.dataTransfer.getData(MIME_NEW) || e.dataTransfer.getData('text/plain');
+    const type =
+        e.dataTransfer.getData(MIME_NEW) ||
+        e.dataTransfer.getData('text/plain');
     if (!type || !elementTypes[type]) return;
 
     const newElement = elementTypes[type].create();
     newElement.x = x;
     newElement.y = y;
 
-    updateReport((prev) => ({
-      ...prev,
-      bands: {
-        ...prev.bands,
-        [bandName]: [...(prev.bands[bandName] || []), newElement],
-      },
-    }));
+    updateReportWithHeight((prev) => {
+      const list = Array.isArray(prev.bands[bandName]) ? prev.bands[bandName] : [];
+      return {
+        ...prev,
+        bands: {
+          ...prev.bands,
+          [bandName]: [...list, newElement],
+        },
+      };
+    });
 
     setSelectedElement({ bandName, elementId: newElement.id });
   };
 
+  // ---- Рендер ----
   return (
-      <div
-          className="bands-designer"
-          ref={canvasRef}
-          onClick={handleCanvasClick}
-      >
-        {Object.entries(report.bands || {}).map(([bandName, elements]) => (
-            <div key={bandName} className={`band ${bandName}`} data-band={bandName}>
-              <div className="band-label">{bandName} Band</div>
+      <div className="bands-designer" ref={canvasRef} onClick={handleCanvasClick}>
+        {Object.entries(report.bands || {}).map(([bandName, elements]) => {
+          const list = Array.isArray(elements) ? elements : [];
+          const height = report.bandHeights?.[bandName] ?? 40;
 
-              <div
-                  className={`band-content${dragOverBand === bandName ? ' drag-over' : ''}`}
-                  onDragEnter={(e) => {
-                    e.preventDefault();
-                    setDragOverBand(bandName);
-                  }}
-                  onDragLeave={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget)) {
-                      setDragOverBand((prev) => (prev === bandName ? null : prev));
-                    }
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    // Разрешаем и copy, и move
-                    e.dataTransfer.dropEffect = e.dataTransfer.types.includes(MIME_MOVE)
-                        ? 'move'
-                        : 'copy';
-                  }}
-                  onDrop={(e) => handleDrop(bandName, e)}
-              >
-                {(elements || []).map((element) => (
-                    <DraggableElement
-                        key={element.id}
-                        element={element}
-                        bandName={bandName}
-                        elementIndex={elements.indexOf(element)}
-                        isSelected={
-                            selectedElement?.bandName === bandName &&
-                            selectedElement?.elementId === element.id
-                        }
-                        onClick={() => handleElementClick(bandName, element.id)}
-                        onMove={(x, y) => handleElementMove(bandName, element.id, x, y)}
-                    />
-                ))}
+          return (
+              <div key={bandName} className={`band ${bandName}`} data-band={bandName}>
+                <div className="band-label">
+                  {bandName} Band <span className="band-height">({height}px)</span>
+                </div>
+
+                <div
+                    className={`band-content${dragOverBand === bandName ? ' drag-over' : ''}`}
+                    style={{ height: `${height}px` }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      setDragOverBand(bandName);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) {
+                        setDragOverBand((prev) => (prev === bandName ? null : prev));
+                      }
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = e.dataTransfer.types.includes(MIME_MOVE)
+                          ? 'move'
+                          : 'copy';
+                    }}
+                    onDrop={(e) => handleDrop(bandName, e)}
+                >
+                  {list.map((element) => (
+                      <DraggableElement
+                          key={element.id}
+                          element={element}
+                          bandName={bandName}
+                          elementIndex={list.indexOf(element)}
+                          isSelected={
+                              selectedElement?.bandName === bandName &&
+                              selectedElement?.elementId === element.id
+                          }
+                          onClick={() => handleElementClick(bandName, element.id)}
+                          onMove={(x, y) => handleElementMove(bandName, element.id, x, y)}
+                      />
+                  ))}
+                </div>
               </div>
-            </div>
-        ))}
+          );
+        })}
       </div>
   );
 }
