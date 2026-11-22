@@ -23,6 +23,56 @@ function PropertiesPanel() {
       : null;
 
   const handlePropertyChange = (property, value) => {
+    // Специальные команды для параметров и полей
+    if (property === 'addParameter') {
+      updateReport(prev => ({
+        ...prev,
+        parameters: [
+          ...(prev.parameters || []),
+          { name: '', type: 'String', defaultValue: '' }
+        ]
+      }));
+      return;
+    }
+    if (property === 'removeParameter') {
+      updateReport(prev => ({
+        ...prev,
+        parameters: (prev.parameters || []).filter((_, i) => i !== value)
+      }));
+      return;
+    }
+    if (property === 'addField') {
+      updateReport(prev => ({
+        ...prev,
+        fields: [
+          ...(prev.fields || []),
+          { name: '', type: 'String' }
+        ]
+      }));
+      return;
+    }
+    if (property === 'removeField') {
+      updateReport(prev => ({
+        ...prev,
+        fields: (prev.fields || []).filter((_, i) => i !== value)
+      }));
+      return;
+    }
+
+    // Обработка точечных путей (parameters[0].name)
+    if (property.startsWith('parameters[') || property.startsWith('fields[')) {
+      const match = property.match(/^(\w+)\[(\d+)\]\.(\w+)$/);
+      if (match) {
+        const [_, section, indexStr, key] = match;
+        const index = parseInt(indexStr, 10);
+        updateReport(prev => {
+          const list = [...(prev[section] || [])];
+          list[index] = { ...list[index], [key]: value };
+          return { ...prev, [section]: list };
+        });
+        return;
+      }
+    }
     if (selected) {
       updateReport((prev) => {
         const bandValue = prev.bands[selectedElement.bandName];

@@ -87,6 +87,65 @@ function ReportProperties({ report, onChange }) {
                 </select>
             </div>
 
+            <div className="property-group">
+                <label>Parameters ($P)</label>
+                {(report.parameters || []).map((param, index) => (
+                    <div key={index} className="param-row">
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            value={param.name}
+                            onChange={(e) => onChange(`parameters[${index}].name`, e.target.value)}
+                        />
+                        <select
+                            value={param.type || 'String'}
+                            onChange={(e) => onChange(`parameters[${index}].type`, e.target.value)}
+                        >
+                            <option value="String">String</option>
+                            <option value="Integer">Integer</option>
+                            <option value="Long">Long</option>
+                            <option value="Date">Date</option>
+                            <option value="BigDecimal">BigDecimal</option>
+                        </select>
+                        <input
+                            type="text"
+                            placeholder="Default"
+                            value={param.defaultValue || ''}
+                            onChange={(e) => onChange(`parameters[${index}].defaultValue`, e.target.value)}
+                        />
+                        <button onClick={() => onChange('removeParameter', index)}>✕</button>
+                    </div>
+                ))}
+                <button onClick={() => onChange('addParameter')}>+ Add Parameter</button>
+            </div>
+
+            {/* ---------- Поля ---------- */}
+            <div className="property-group">
+                <label>Fields ($F)</label>
+                {(report.fields || []).map((field, index) => (
+                    <div key={index} className="field-row">
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            value={field.name}
+                            onChange={(e) => onChange(`fields[${index}].name`, e.target.value)}
+                        />
+                        <select
+                            value={field.type || 'String'}
+                            onChange={(e) => onChange(`fields[${index}].type`, e.target.value)}
+                        >
+                            <option value="String">String</option>
+                            <option value="Integer">Integer</option>
+                            <option value="Long">Long</option>
+                            <option value="Date">Date</option>
+                            <option value="BigDecimal">BigDecimal</option>
+                        </select>
+                        <button onClick={() => onChange('removeField', index)}>✕</button>
+                    </div>
+                ))}
+                <button onClick={() => onChange('addField')}>+ Add Field</button>
+            </div>
+
             {/* ---------- Источник данных ---------- */}
             <div className="property-group">
                 <label>Data Source</label>
