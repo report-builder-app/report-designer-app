@@ -28,7 +28,7 @@ function AppShell() {
     return (
         <div className="app-container">
             <header className="app-header">
-                <h1>Jasper Groovy DSL Designer</h1>
+                <h1>Report Designer for Groovy DSL</h1>
                 <nav className="tabs">
                     <div className="tabs-left">
                         <button className={activeTab === 'designer' ? 'active' : ''} onClick={() => goTo('designer')}>Designer</button>
