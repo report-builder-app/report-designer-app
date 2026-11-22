@@ -1,79 +1,75 @@
 # Report Designer App
 
-Клиентское приложения для дизайна отчетов
+# Report Designer App
 
-Визуальный дизайнер:
-![My Image](./imgs/1.png "My Image Title")
+Веб-приложение для визуального проектирования отчётов на базе [report-design-lib](https://github.com/report-builder-app/report-design-lib).
 
-Groovy DSL:
-![My Image](./imgs/2.png "My Image Title")
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-Превью и деплой отчета:
-![My Image](./imgs/3.png "My Image Title")
+---
 
-## Available Scripts
+## Возможности
 
-In the project directory, you can run:
+- **Визуальный дизайнер** — drag-and-drop бэндов и элементов, инспектор свойств, превью в реальном времени.
+- **Groovy DSL** — генерация и редактирование кода отчёта с подсветкой синтаксиса.
+- **Превью и деплой** — отправка отчёта на бэкенд и получение готового PDF / XLSX / HTML / JSON.
+- **Источники данных** — подключение SQL, REST и custom-провайдеров прямо из UI.
+- **Экспорт** — скачивание готового отчёта или сохранение шаблона в JSON.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Скриншоты
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Визуальный дизайнер
 
-### `npm test`
+![Визуальный дизайнер](./imgs/6.png)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Основной экран: палитра элементов слева, холст с бэндами по центру, инспектор свойств справа. Элементы перетаскиваются между бэндами, поддерживается изменение размера и позиции.
 
-### `npm run build`
+### Groovy DSL
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+![Groovy DSL](./imgs/8.png)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Вкладка с кодом отчёта. DSL генерируется автоматически из визуальной модели — можно переключаться между режимами и вносить правки вручную.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Превью и деплой
 
-### `npm run eject`
+![Превью и деплой](./imgs/10.png)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Превью отчёта через бэкенд (`POST /api/v1/reports/render/html?disposition=inline`) и кнопка экспорта в PDF/XLSX.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Настройка источника данных
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+![Источник данных](./imgs/5.png)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Подключение SQL / REST / custom-провайдера. Кнопка «Test connection» проверяет доступность источника до сохранения.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Запуск
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+# Установка зависимостей
+npm install
 
-### Code Splitting
+# Запуск в режиме разработки
+npm start
+# → http://localhost:3000
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# Сборка production-бандла
+npm run build
 
-### Analyzing the Bundle Size
+# Запуск тестов
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Лицензия
 
-### Making a Progressive Web App
+Apache License 2.0 — см. файл LICENSE
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+JasperReports® and JRXML are trademarks or registered trademarks of Cloud Software Group, Inc.
+or its subsidiaries (formerly TIBCO Software Inc. / Jaspersoft Corporation).
+This project is an independent converter tool and is not affiliated with, endorsed by,
+or sponsored by Cloud Software Group, Inc.
